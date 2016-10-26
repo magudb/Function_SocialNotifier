@@ -1,0 +1,15 @@
+{
+  "name": "socialupdater",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bitly": "^4.1.1",
+    "twitter": "^1.4.0"
+  }
+}
