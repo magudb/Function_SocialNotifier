@@ -30,11 +30,11 @@ module.exports = function (context, data) {
                 message: message
             };
 
-            bitly.shorten('https://github.com/tanepiper/node-bitly')
+            bitly.shorten(model.url)
                 .then(function (response) {
                     model.shortUrl = response.data.url;
                     context.log(model);
-                    resolved(model)
+                    return resolved(model)
                 }, function (error) {
                     rejected(error);
                 });
@@ -43,6 +43,16 @@ module.exports = function (context, data) {
 
     Promise.all(notifications).then(values => {
         context.log(values);
+        var model = values[0];
+        client.post('statuses/update', { status: `${model.message} ${model.shortUrl}` }, function (error, tweet, response) {
+            if (error) {
+                throw error;
+            }
+
+            console.log(tweet);  // Tweet body.
+            console.log(response);  // Raw response object.
+        });
+
         context.res = { body: 'New GitHub comment: ' };
         context.done();
     });
