@@ -22,7 +22,7 @@ module.exports = function (context, data) {
             let month = filearray[2];
             let day = filearray[3]
             let title = filearray[4];
-            var urlpath = title.replace(/\W/g, "").replace(/\s/g, "-");
+            var urlpath = title.replace(/\s/g, "-");
           
             let message = commit.message.match(/New post: (.*)/i)[1]
 
