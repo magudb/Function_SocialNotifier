@@ -12,7 +12,7 @@ var client = new Twitter({
 module.exports = function (context, data) {
     context.log('GitHub Webhook triggered!');
     var notifications = data.commits.map(commit => {
-        if (!commit.message.startWith("New post:")) {
+        if (!commit.message.startsWith("New post:")) {
             return;
         }
         return new Promise((resolved, rejected) => {
