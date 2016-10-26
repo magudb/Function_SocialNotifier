@@ -49,8 +49,8 @@ module.exports = function (context, data) {
                 throw error;
             }
 
-            console.log(tweet);  // Tweet body.
-            console.log(response);  // Raw response object.
+            context.log(tweet);  // Tweet body.
+            context.log(response);  // Raw response object.
         });
 
         context.res = { body: 'New GitHub comment: ' };
