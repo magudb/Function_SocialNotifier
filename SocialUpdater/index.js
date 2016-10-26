@@ -3,15 +3,15 @@ var Bitly = require('bitly');
 var bitly = new Bitly(process.env.bitly_token);
 var Twitter = require('twitter');
 var client = new Twitter({
-  consumer_key: process.env.TWITTER_CONSUMER_KEY,
-  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+    consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+    access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+    access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
 module.exports = function (context, data) {
     context.log('GitHub Webhook triggered!');
-     var notifications = data.commits.map(commit => {
+    var notifications = data.commits.map(commit => {
         if (!commit.message.startWith("New post:")) {
             return;
         }
@@ -24,7 +24,7 @@ module.exports = function (context, data) {
             let title = filearray[4];
             let urlpath = title.replace(/\s/g, "-").replace(/\W/g, " ")
             let message = commit.message.match(/New post: (.*)/i)[1]
-            
+
             var model = {
                 url: `https://udbjorg.net/${year}/${urlpath}`,
                 message: message
@@ -37,13 +37,15 @@ module.exports = function (context, data) {
                     resolved(model)
                 }, function (error) {
                     rejected(error);
-                });            
+                });
         });
-
-
-
     });
 
-    context.res = { body: 'New GitHub comment: ' };
-    context.done();
+    Promise.all(notifications).then(values => {
+        context.log(values);
+        context.res = { body: 'New GitHub comment: ' };
+        context.done();
+    });
+
+
 };
