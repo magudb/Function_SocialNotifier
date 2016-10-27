@@ -76,9 +76,9 @@ var buildMessage = (commit) => {
 module.exports = (context, data) => {
     context.log('GitHub Webhook triggered!');
     var notifications = data.commits.map(commit => {
-        if (!commit.message.startsWith("New post:")) {
-            context.log(commit.message);           
-            return new Promise((resolved, rejected) => {resolved({})});
+        context.log(commit.message);    
+        if (!commit.message.startsWith("New post:")) {                   
+            return new Promise((resolved, rejected) => {resolved({});});
         }
         return buildMessage(commit);
     });
@@ -105,10 +105,11 @@ module.exports = (context, data) => {
                     context.res = { body: values };
                     context.done();
                 });
-        }).catch(values => {
+        })
+    })
+    .catch(values => {
             context.log(values);
             context.res = { body: values };
             context.done();
-        });
-    });
+        });;
 };
