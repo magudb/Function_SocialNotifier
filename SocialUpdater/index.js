@@ -77,6 +77,9 @@ module.exports = (context, data) => {
     context.log('GitHub Webhook triggered!');
     var notifications = data.commits.map(commit => {
         if (!commit.message.startsWith("New post:")) {
+            context.log(commit.message);
+            context.res = { body: "nothing" };
+            context.done();
             return;
         }
         return buildMessage(commit);
