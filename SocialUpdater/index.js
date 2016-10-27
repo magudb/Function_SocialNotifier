@@ -57,7 +57,6 @@ var buildMessage = (commit) => {
         let message = commit.message.match(/New post: (.*)/i)[1]
 
         var model = {
-
             message: message
         };
 
@@ -69,7 +68,7 @@ var buildMessage = (commit) => {
                 };
                 return resolved(model)
             }, function (error) {
-                rejected(error);
+                return rejected(error);
             });
     });
 };
@@ -104,6 +103,10 @@ module.exports = (context, data) => {
             //         context.res = { body: values };
             //         context.done();
             //     });
+        }).catch(values => {
+            context.log(values);
+            context.res = { body: values };
+            context.done();
         });
     });
 };
