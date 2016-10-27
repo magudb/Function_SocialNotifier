@@ -91,13 +91,21 @@ module.exports = (context, data) => {
                 return;
             }
             var message = `${model.message} ${model.shortUrl}`;
+            context.log("tweeting", message);
             var tweeted = tweet(message);
+            context.log("facebooking", message);
             var facebooked = facebookUpdate(message);
 
-            Promise.all([tweeted, facebooked]).then(values => {
+            Promise.all([tweeted, facebooked])
+            .then(values => {
                 context.res = { body: 'Updated' };
                 context.done();
-            });
+            }) .catch(values => {
+                context.log(values);
+                context.res = { body: values };
+                context.done();
+            })
+            ;
         });
     });
 };
