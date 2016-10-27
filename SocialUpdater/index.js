@@ -9,7 +9,6 @@ var twitter = new Twitter({
     access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
-var Linkedin = require('node-linkedin')('app-id', 'secret', 'callback');
 
 var facebookUpdate = (message) => {
     return new Promise((resolved, rejected) => {
