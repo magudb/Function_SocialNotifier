@@ -78,7 +78,7 @@ module.exports = (context, data) => {
     var notifications = data.commits.map(commit => {
         context.log(commit.message);    
         if (!commit.message.startsWith("New post:")) {                   
-            return new Promise((resolved, rejected) => {resolved({});});
+            return;
         }
         return buildMessage(commit);
     });
