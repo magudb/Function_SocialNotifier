@@ -77,15 +77,14 @@ module.exports = (context, data) => {
     context.log('GitHub Webhook triggered!');
     var notifications = data.commits.map(commit => {
         if (!commit.message.startsWith("New post:")) {
-            context.log(commit.message);
-            context.res = { body: "nothing" };
-            context.done();
-            return;
+            context.log(commit.message);           
+            return new Promise((resolved, rejected) => {resolved({})});
         }
         return buildMessage(commit);
     });
 
     Promise.all(notifications).then(values => {
+        context.log(values);
         values.forEach((model) => {
             if (!model.shortUrl) {
                 context.log("model is no valid", model);
@@ -93,19 +92,19 @@ module.exports = (context, data) => {
             }
             var message = `${model.message} ${model.shortUrl}`;
             context.log("tweeting", message);
-            //var tweeted = tweet(message);
+            var tweeted = tweet(message);
             context.log("facebooking", message);
-            //var facebooked = facebookUpdate(message);
+            var facebooked = facebookUpdate(message);
 
-            // Promise.all([tweeted, facebooked])
-            //     .then(values => {
-            //         context.res = { body: 'Updated' };
-            //         context.done();
-            //     }).catch(values => {
-            //         context.log(values);
-            //         context.res = { body: values };
-            //         context.done();
-            //     });
+            Promise.all([tweeted, facebooked])
+                .then(values => {
+                    context.res = { body: 'Updated' };
+                    context.done();
+                }).catch(values => {
+                    context.log(values);
+                    context.res = { body: values };
+                    context.done();
+                });
         }).catch(values => {
             context.log(values);
             context.res = { body: values };
