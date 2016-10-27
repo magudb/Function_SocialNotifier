@@ -2,60 +2,103 @@
 var Bitly = require('bitly');
 var bitly = new Bitly(process.env.bitly_token);
 var Twitter = require('twitter');
-var client = new Twitter({
+var facebook = require('fb');
+var twitter = new Twitter({
     consumer_key: process.env.TWITTER_CONSUMER_KEY,
     consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
     access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
+var Linkedin = require('node-linkedin')('app-id', 'secret', 'callback');
 
-module.exports = function (context, data) {
+var facebookUpdate = (message) => {
+    return new Promise((resolved, rejected) => {
+        facebook.api('oauth/access_token', {
+            client_id: 'app_id',
+            client_secret: process.env.FACEBOOK_SECRET,
+            grant_type: process.env.FACEBOOK_APPID
+        }, function (res) {
+            if (!res || res.error) {
+                return rejected(res.error);
+
+            }
+            facebook.setAccessToken(res.access_token);
+
+            facebook.api('me/feed', 'post', { message: message }, function (res) {
+                if (!res || res.error) {
+                    return rejected(res.error);
+                }
+                return resolved(res.id);
+            });
+
+        });
+    })
+};
+
+var tweet = (message) => {
+    return new Promise((resolved, rejected) => {
+        twitter.post('statuses/update', { status: message }, function (error, tweet, response) {
+            if (error) {
+                rejected(rejected)
+            }
+            resolved(message);
+        });
+
+    })
+
+};
+
+var buildMessage = (commit) => {
+    return new Promise((resolved, rejected) => {
+        let file = commit.added.filter(file => file.endsWith(".md"))[0];
+        let filearray = file.match(/(\d{4})-(\d{2})-(\d{2})-(.*).md/i);
+        let year = filearray[1];
+        let title = filearray[4];
+        let urlpath = title.replace(/\s/g, "-");
+        let message = commit.message.match(/New post: (.*)/i)[1]
+
+        var model = {
+
+            message: message
+        };
+
+        bitly.shorten(`https://udbjorg.net/${year}/${urlpath}`)
+            .then(function (response) {
+                var model = {
+                    shortUrl: response.data.url,
+                    message: message
+                };                
+                return resolved(model)
+            }, function (error) {
+                rejected(error);
+            });
+    });
+};
+
+module.exports = (context, data) => {
     context.log('GitHub Webhook triggered!');
     var notifications = data.commits.map(commit => {
         if (!commit.message.startsWith("New post:")) {
             return;
         }
-        return new Promise((resolved, rejected) => {
-            let file = commit.added.filter(file => file.endsWith(".md"))[0];
-            let filearray = file.match(/(\d{4})-(\d{2})-(\d{2})-(.*).md/i);
-            let year = filearray[1];
-            let month = filearray[2];
-            let day = filearray[3]
-            let title = filearray[4];
-            var urlpath = title.replace(/\s/g, "-");
-            let message = commit.message.match(/New post: (.*)/i)[1]
-
-            var model = {
-                url: `https://udbjorg.net/${year}/${urlpath}`,
-                message: message
-            };
-
-            bitly.shorten(model.url)
-                .then(function (response) {
-                    model.shortUrl = response.data.url;
-                    context.log(model);
-                    return resolved(model)
-                }, function (error) {
-                    rejected(error);
-                });
-        });
+        return buildMessage(commit);
     });
 
     Promise.all(notifications).then(values => {
-        context.log(values);
-        var model = values[0];
-        client.post('statuses/update', { status: `${model.message} ${model.shortUrl}` }, function (error, tweet, response) {
-            if (error) {
-                throw error;
+        values.forEach((model) => {
+            if(!model.shortUrl)
+            {
+                context.log("model is no valid", model);
+                return;
             }
+            var message = `${model.message} ${model.shortUrl}`;
+            var tweeted = tweet(message);
+            var facebooked = facebookUpdate(message);
 
-            context.log(tweet);  // Tweet body.
-            context.log(response);  // Raw response object.
+            Promise.all([tweeted, facebooked]).then(values => {
+                context.res = { body: 'Updated' };
+                context.done();
+            });
         });
-
-        context.res = { body: 'New GitHub comment: ' };
-        context.done();
     });
-
-
 };
