@@ -48,17 +48,20 @@ var tweet = (message) => {
 };
 
 var buildMessage = (commit) => {
+    if (!commit) {
+        return;
+    }
     return new Promise((resolved, rejected) => {
         let file = commit.added.filter(file => file.endsWith(".md"))[0];
+        context.log(commit.added);
+        if (!file) {
+            resolved({});
+        }
         let filearray = file.match(/(\d{4})-(\d{2})-(\d{2})-(.*).md/i);
         let year = filearray[1];
         let title = filearray[4];
         let urlpath = title.replace(/\s/g, "-");
         let message = commit.message.match(/New post: (.*)/i)[1]
-
-        var model = {
-            message: message
-        };
 
         bitly.shorten(`https://udbjorg.net/${year}/${urlpath}`)
             .then(function (response) {
@@ -76,8 +79,8 @@ var buildMessage = (commit) => {
 module.exports = (context, data) => {
     context.log('GitHub Webhook triggered!');
     var notifications = data.commits.map(commit => {
-        context.log(commit.message);    
-        if (!commit.message.startsWith("New post:")) {                   
+        context.log(commit.message);
+        if (!commit.message.startsWith("New post:")) {
             return;
         }
         return buildMessage(commit);
@@ -107,7 +110,7 @@ module.exports = (context, data) => {
                 });
         })
     })
-    .catch(values => {
+        .catch(values => {
             context.log(values);
             context.res = { body: values };
             context.done();
