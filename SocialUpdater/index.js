@@ -53,9 +53,11 @@ var buildMessage = (commit) => {
     }
     return new Promise((resolved, rejected) => {
         let file = commit.added.filter(file => file.endsWith(".md"))[0];
-        context.log(commit.added);
+        
         if (!file) {
-            resolved({});
+            resolved({
+                errors : "No file - " + JSON.stringify(commit.added)
+            });
         }
         let filearray = file.match(/(\d{4})-(\d{2})-(\d{2})-(.*).md/i);
         let year = filearray[1];
@@ -89,7 +91,7 @@ module.exports = (context, data) => {
     Promise.all(notifications).then(values => {
         context.log(values);
         values.forEach((model) => {
-            if (!model.shortUrl) {
+            if (!model.shortUrl || model.errors) {
                 context.log("model is no valid", model);
                 return;
             }
