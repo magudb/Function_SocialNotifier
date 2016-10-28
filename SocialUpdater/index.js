@@ -13,9 +13,9 @@ var twitter = new Twitter({
 var facebookUpdate = (message) => {
     return new Promise((resolved, rejected) => {
         facebook.api('oauth/access_token', {
-            client_id: 'app_id',
+            client_id: process.env.FACEBOOK_APPID,
             client_secret: process.env.FACEBOOK_SECRET,
-            grant_type: process.env.FACEBOOK_APPID
+            grant_type: 'client_credentials'
         }, function (res) {
             if (!res || res.error) {
                 return rejected(res.error);
@@ -81,15 +81,14 @@ var buildMessage = (commit) => {
 module.exports = (context, data) => {
     context.log('GitHub Webhook triggered!');
     var notifications = data.commits.map(commit => {
-        context.log(commit.message);
+        context.log(commit);
         if (!commit.message.startsWith("New post:")) {
             return;
         }
         return buildMessage(commit);
     });
 
-    Promise.all(notifications).then(values => {
-        context.log(values);
+    Promise.all(notifications).then(values => {        
         values.forEach((model) => {
             if (!model.shortUrl || model.errors) {
                 context.log("model is no valid", model);
