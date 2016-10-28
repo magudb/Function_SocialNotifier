@@ -13,19 +13,19 @@ let postToIFTT = (eventName, value1, value2, value3) => {
 
 let facebookUpdate = (message, blogurl) => {
     const eventName = "new link post facebook"
-    return postToIFTT(event, message, blogurl, "");
+    return postToIFTT(eventName, message, blogurl, "");
 
 };
 
 let tweet = (message, blogurl) => {
     const eventName = "new link post twitter"
-    return postToIFTT(event, message, blogurl, "");
+    return postToIFTT(eventName, message, blogurl, "");
 
 };
 
 let lindkedined = (message, blogurl) => {
     const eventName = "new link post linkedin"
-    return postToIFTT(event, message, blogurl, "");
+    return postToIFTT(eventName, message, blogurl, "");
 
 };
 let buildMessage = (commit) => {
