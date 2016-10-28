@@ -11,6 +11,8 @@
   "dependencies": {
     "bitly": "^4.1.1",
     "fb": "^1.1.1",
+    "superagent": "^2.3.0",
+    "superagent-bluebird-promise": "^4.1.0",
     "twitter": "^1.4.0"
   }
 }

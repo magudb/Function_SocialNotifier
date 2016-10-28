@@ -1,62 +1,43 @@
 // Please visit http://go.microsoft.com/fwlink/?LinkID=761099&clcid=0x409 for more information on settting up Github Webhooks
 var Bitly = require('bitly');
 var bitly = new Bitly(process.env.bitly_token);
-var Twitter = require('twitter');
-var facebook = require('fb');
-var twitter = new Twitter({
-    consumer_key: process.env.TWITTER_CONSUMER_KEY,
-    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-    access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-    access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-});
+var request = require('superagent-bluebird-promise');
 
-var facebookUpdate = (message) => {
-    return new Promise((resolved, rejected) => {
-        facebook.api('oauth/access_token', {
-            client_id: process.env.FACEBOOK_APPID,
-            client_secret: process.env.FACEBOOK_SECRET,
-            grant_type: 'client_credentials'
-        }, function (res) {
-            if (!res || res.error) {
-                return rejected(res.error);
+let postToIFTT = (eventName, value1, value2, value3) => {
+    const url = `https://maker.ifttt.com/trigger/${eventName}/with/key/b7kq0kA6HZhYrN442UBSVh`
+    return request
+        .post(url)
+        .send({ "value1": message, "value2": blogurl, "value3": value3 });
+}
 
-            }
-            facebook.setAccessToken(res.access_token);
 
-            facebook.api('me/feed', 'post', { message: message }, function (res) {
-                if (!res || res.error) {
-                    return rejected(res.error);
-                }
-                return resolved(res.id);
-            });
-
-        });
-    })
-};
-
-var tweet = (message) => {
-    return new Promise((resolved, rejected) => {
-        twitter.post('statuses/update', { status: message }, function (error, tweet, response) {
-            if (error) {
-                rejected(rejected)
-            }
-            resolved(message);
-        });
-
-    })
+let facebookUpdate = (message, blogurl) => {
+    const eventName = "new link post facebook"
+    return postToIFTT(event, message, blogurl, "");
 
 };
 
-var buildMessage = (commit) => {
+let tweet = (message, blogurl) => {
+    const eventName = "new link post twitter"
+    return postToIFTT(event, message, blogurl, "");
+
+};
+
+let lindkedined = (message, blogurl) => {
+    const eventName = "new link post linkedin"
+    return postToIFTT(event, message, blogurl, "");
+
+};
+let buildMessage = (commit) => {
     if (!commit) {
         return;
     }
     return new Promise((resolved, rejected) => {
         let file = commit.added.filter(file => file.endsWith(".md"))[0];
-        
+
         if (!file) {
             resolved({
-                errors : "No file - " + JSON.stringify(commit.added)
+                errors: "No file - " + JSON.stringify(commit.added)
             });
         }
         let filearray = file.match(/(\d{4})-(\d{2})-(\d{2})-(.*).md/i);
@@ -88,7 +69,7 @@ module.exports = (context, data) => {
         return buildMessage(commit);
     });
 
-    Promise.all(notifications).then(values => {        
+    Promise.all(notifications).then(values => {
         values.forEach((model) => {
             if (!model.shortUrl || model.errors) {
                 context.log("model is no valid", model);
@@ -96,11 +77,13 @@ module.exports = (context, data) => {
             }
             var message = `${model.message} ${model.shortUrl}`;
             context.log("tweeting", message);
-            var tweeted = tweet(message);
+            var tweeted = tweet(model.message, model.shortUrl);
             context.log("facebooking", message);
-            var facebooked = facebookUpdate(message);
+            var facebooked = facebookUpdate(model.message, model.shortUrl);
+             context.log("linkedined", message);
+            var linked = lindkedined(model.message, model.shortUrl);
 
-            Promise.all([tweeted, facebooked])
+            Promise.all([tweeted, facebooked, linked])
                 .then(values => {
                     context.res = { body: 'Updated' };
                     context.done();
