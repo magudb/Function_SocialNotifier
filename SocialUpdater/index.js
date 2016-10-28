@@ -7,7 +7,7 @@ let postToIFTT = (eventName, value1, value2, value3) => {
     const url = `https://maker.ifttt.com/trigger/${eventName}/with/key/${key}`
     return request
         .post(url)
-        .send({ "value1": message, "value2": blogurl, "value3": value3 });
+        .send({ "value1": value1, "value2": value2, "value3": value3 });
 }
 
 
