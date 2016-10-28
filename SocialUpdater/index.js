@@ -2,9 +2,9 @@
 var Bitly = require('bitly');
 var bitly = new Bitly(process.env.bitly_token);
 var request = require('superagent-bluebird-promise');
-
+const key = process.env.iftt_key;
 let postToIFTT = (eventName, value1, value2, value3) => {
-    const url = `https://maker.ifttt.com/trigger/${eventName}/with/key/b7kq0kA6HZhYrN442UBSVh`
+    const url = `https://maker.ifttt.com/trigger/${eventName}/with/key/${key}`
     return request
         .post(url)
         .send({ "value1": message, "value2": blogurl, "value3": value3 });
