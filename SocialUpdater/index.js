@@ -33,7 +33,9 @@ let buildMessage = (commit) => {
         return;
     }
     return new Promise((resolved, rejected) => {
-        let file = commit.added.filter(file => file.endsWith(".md"))[0];
+        let added = commit.added.filter(file => file.endsWith(".md") && file.startsWith("_posts/"));
+        let modified = commit.modified.filter(file => file.endsWith(".md") && file.startsWith("_posts/"));
+        let file = added.concat(modified)[0];
 
         if (!file) {
             resolved({
