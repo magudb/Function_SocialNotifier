@@ -44,11 +44,12 @@ let buildMessage = (commit) => {
         }
         let filearray = file.match(/(\d{4})-(\d{2})-(\d{2})-(.*).md/i);
         let year = filearray[1];
+        let month = filearray[2];
         let title = filearray[4];
         let urlpath = title.replace(/\s/g, "-");
         let message = commit.message.match(/New post: (.*)/i)[1]
 
-        bitly.shorten(`https://udbjorg.net/${year}/${urlpath}`)
+        bitly.shorten(`https://udbjorg.net/${year}/${month}/${urlpath}`)
             .then(function (response) {
                 var model = {
                     shortUrl: response.data.url,
